@@ -9,6 +9,8 @@ Maybe you want to browse the doc for https://package.elm-lang.org/packages/MacCA
 
 ## Notes for improvement after first use - GeekGala 2018
 
+Main idea: make things easier with less refactoring.
+
 ### Circular Trees
 The geometry of converting from triangle-trees to circle trees is too hard! Either they need a diagram (my preference), or they need to have oval be a drop-in replacement for isocelese2 - like all they do is change the word.
 
@@ -16,15 +18,19 @@ The geometry of converting from triangle-trees to circle trees is too hard! Eith
 
 Give them some sketches of clouds, cats, spiders, etc.
 
+### press 'r' for Reset
+
+This was good
+
 ### Afterburner
 Reset the rocket state to 'falling' if it's thrusting in a new
 updater, then have the thrust key set it back to 'thrusting' when it's
 pressed. That way when they copy-paste that line, the exhaust plume
 graphic works as you'd expect.
 
-### Crashing
+### Crashing the Rocket
 
-It's too hard! Nobody did it.
+This challenge is too hard! Nobody did it.
 
 ## Install on LC Education Laptop
 
