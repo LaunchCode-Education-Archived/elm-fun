@@ -12,20 +12,23 @@ groundY = 0 - viewH/4
 -- build the scene, one object at a time
 view model =
     collage viewW viewH
-        [ sky blue viewW viewH
-        , earth veryDarkGreen viewW (viewH/4)
-        , star white 7 |> move (-70, 120)
-        , star white 8 |> move (43, -28)
-        , star white 5 |> move (189, 89)
-        , star white 6 |> move (-184, -42)
-        , star white 7 |> move (350, 100)
-        , moon paleYellow 60 |> move (-370, 178)
-        , rocket model.state 40 |> move (model.position.x, model.position.y) |> rotate (model.angle)
-        , tree 16 40 |> move (-360, groundY - 14)
-        , tree 24 60 |> move (-340, groundY - 20)
-        , tree 18 45 |> move (-300, groundY - 18)
-        , house 100 150 |> move (410,-150)
-        ]
+        (
+         [ sky blue viewW viewH
+         , earth veryDarkGreen viewW (viewH/4)
+         , star white 7 |> move (-70, 120)
+         , star white 8 |> move (43, -28)
+         , star white 5 |> move (189, 89)
+         , star white 6 |> move (-184, -42)
+         , star white 7 |> move (350, 100)
+         , moon paleYellow 60 |> move (-370, 178)
+         , rocket (model.rocket.state) 40 |> move (model.rocket.position.x, model.rocket.position.y) |> rotate (model.rocket.angle)
+         , tree 16 40 |> move (-360, groundY - 14)
+         , tree 24 60 |> move (-340, groundY - 20)
+         , tree 18 45 |> move (-300, groundY - 18)
+         , house 100 150 |> move (410,-150)
+         ]
+         ++
+         List.map drawThing model.things)
 
 -- the rocket can be launched and steered
 -- a: turn left
@@ -46,20 +49,33 @@ update msg model =
                     case keys (Key key) of
                         JustDown -> func
                         _ -> identity
+                spacePressed =
+                    keys (Key " ") == JustDown
+                rocket2 =
+                    model.rocket
+                        |> ifHeldThenElse "s" thrustUpdate noThrustUpdate
+                        |> ifHeldThen "a" (turnUpdate 0.0625)
+                        |> ifHeldThen "d" (turnUpdate -0.0625)
+                        |> gravityUpdate
+                        |> dragUpdate
+                        |> velocityUpdate
+                things2 =
+                    if spacePressed then
+                        newStar :: model.things else
+                        model.things
+                physics thing =
+                   thing
+                newStar =
+                    {position = rocket2.position, velocity = rocket2.velocity, angle = rocket2.angle}
             in
-            model
-                |> ifHeldThenElse "s" thrustUpdate noThrustUpdate
-                |> ifHeldThen "a" (turnUpdate 0.0625)
-                |> ifHeldThen "d" (turnUpdate -0.0625)
-                |> gravityUpdate
-                |> dragUpdate
-                |> velocityUpdate
+            {rocket = physics rocket2, things = things2}
 
 init =
-    { position = { x = 0, y = groundY}
-    , velocity = { x = 0, y = 0 }
-    , angle = 0
-    , state = Landed }
+    { rocket = { position = { x = 0, y = groundY}
+               , velocity = { x = 0, y = 0 }
+               , angle = 0
+               , state = Landed }
+    , things = []}
 
 
 moon color radius =
@@ -118,8 +134,8 @@ sky color w h =
 earth color w h =
     rectangle w h |> filled color |> move (0,-3*h/2)
 
-
-
+drawThing thing =
+    star yellow 7 |> move (thing.position.x, thing.position.y)
 
 type Msg
     = Tick Float GetKeyState
@@ -130,11 +146,20 @@ type RocketState = Landed
 
 type alias Point = {x : Float, y : Float}
 
-type alias Model = Rocket
+type alias Model = {rocket : Rocket, things : List Thing }
+
+things model = model.rocket :: model.things
 
 type alias Rocket =
     { position : Point, velocity : Point, angle : Float, state : RocketState }
 
+type alias Thing =
+    { position : Point, velocity : Point, angle : Float }
+
+randomThing = {position = {x=0,y=0}, velocity = {x=0,y=0}, angle = 0}
+
+thingEqual thing1 thing2 =
+    (thing1.position == thing2.position) && (thing1.velocity == thing2.velocity) && (thing1.angle == thing2.angle)
 
 gravityUpdate rocket =
     let
